@@ -1,49 +1,63 @@
 package ru.kata.spring.boot_security.demo.configs;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.kata.spring.boot_security.demo.services.UserServiceImpl;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    private final SuccessUserHandler successUserHandler;
+    //обработчик успешной аутентификации
+    private  SuccessUserHandler successUserHandler;
+    private UserServiceImpl userDetailsService;
 
-    public WebSecurityConfig(SuccessUserHandler successUserHandler) {
+    @Autowired
+    public WebSecurityConfig(SuccessUserHandler successUserHandler
+            , UserServiceImpl userDetailsService) {
         this.successUserHandler = successUserHandler;
+        this.userDetailsService = userDetailsService;
     }
-
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/", "/index").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .formLogin().successHandler(successUserHandler)
-                .permitAll()
-                .and()
-                .logout()
-                .permitAll();
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(daoAuthenticationProvider());
     }
 
-    // аутентификация inMemory
     @Bean
-    @Override
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("user")
-                        .roles("USER")
-                        .build();
+    protected PasswordEncoder passwordEncoder() { // кодировка паролей
+        return new BCryptPasswordEncoder(12);
+    }
 
-        return new InMemoryUserDetailsManager(user);
+    @Bean
+    protected DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        return daoAuthenticationProvider;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception { // конфиги в которых указывается доступы пользователей
+        http
+                .cors().disable()
+                .csrf().disable() //  защита от CSRF-атак
+                .authorizeRequests() //авторизацуем запрос
+                .antMatchers("/login", "/").permitAll()
+                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated() // все запросы должны быть авторизованы и аутентифицированы
+                .and()
+                .formLogin()
+                .successHandler(successUserHandler)
+                .permitAll() // доступно всем
+                .and()
+                .logout().permitAll(); // настройка логаута
     }
 }

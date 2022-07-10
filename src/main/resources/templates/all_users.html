@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>For admin</title>
+</head>
+<body>
+<h2>Welcome to spring boot security page!</h2>
+<div>
+
+    <table border="1">
+        <tr>
+            <th>FirstName</th>
+            <th>Lastname</th>
+            <th>Age</th>
+            <th>Username</th>
+            <th>Role</th>
+        </tr>
+
+        <tr th:each="user : ${userSet}">
+            <td th:text="${user.getFirstName()}">Name</td>
+            <td th:text="${user.getLastName()}">Surname</td>
+            <td th:text="${user.getAge()}">Age</td>
+            <td th:text="${user.getUsername()}">Email</td>
+            <td th:text="${user.getRoles()}">Role</td>
+
+            <td>
+                <form th:action= "@{/admin/users/{id}/edit(id=${user.id})}" th:object="${user}">
+                    <button style="background:#bfe3ef" type="submit">Update</button>
+                </form>
+            </td>
+
+            <td>
+                <form th:method="DELETE" th:action="@{/admin/users/{id}/delete(id=${user.id})}">
+                    <input type="hidden" name="id" th:value="${user.id}">
+                    <button style="background:#f3bfae" type="submit">Delete</button>
+                </form>
+            </td>
+
+        </tr>
+    </table>
+    </br>
+    </br>
+    </hr>
+
+    <form th:action="@{/admin/users/new}">
+        <button style="background: lightgray" type="submit">Create new user</button>
+    </form>
+    <br>
+    <form th:action="@{/logout}" method="post">
+        <input style="background: lightgray" type="submit" value="Выйти">
+    </form>
+</div>
+</body>
+</html>

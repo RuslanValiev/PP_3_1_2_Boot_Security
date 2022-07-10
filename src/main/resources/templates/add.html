@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create new user</title>
+</head>
+<body>
+<h2>Add user</h2>
+<div>
+    <form th:action="@{/logout}" method="post" th:object="${user}">
+        <input type="submit" value="logout">
+    </form>
+    <br>
+    <form method="POST" th:action="@{/admin/users/new}" th:object="${user}">
+        <fieldset>
+            <legend>User data</legend>
+            <label for="name">Enter name</label>
+            <input type="text" th:field="*{firstName}" id="name"/>
+<!--            <div style="color:#cd5c5c" th:if="${#fields.hasErrors('name')}" th:errors="*{firstName}">Name error</div>-->
+            <br>
+            <label for="surname">Surname</label>
+            <input type="text" th:field="*{lastName}" id="surname"/>
+<!--            <div style="color:indianred"  th:errors="*{lastName}">Surname error</div>-->
+            <br>
+            <label for="age">Age</label>
+            <input type="number" th:field="*{age}" id="age"/>
+<!--            <div style="color:indianred" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Age error</div>-->
+            <br>
+            <label for="username">Username</label>
+            <input type="text" th:field="*{username}" id="username"/>
+<!--            <div style="color:indianred" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>-->
+            <br>
+            <label for="password">Password</label>
+            <input type="password" th:field="*{password}" id="password"/>
+<!--            <div style="color:indianred" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>-->
+            <br>
+            <label>
+                <select size="3" multiple="multiple" name="roles" id="roles">
+                    <option disabled>Roles:</option>
+                    <option value="ROLE_ADMIN">ADMIN</option>
+                    <option selected value="ROLE_USER">USER</option>
+                </select>
+            </label>
+
+        </fieldset>
+        <p>
+            <button style="background:#bfe3ef" type="submit">Save user</button>
+    </form>
+    <br/>
+    <form th:action="@{/admin}">
+        <button style="background:#f3bfae" type="submit" class="btn btn-outline-danger">Back to user list</button>
+    </form>
+</div>
+</body>
+</html>
